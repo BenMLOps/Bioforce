@@ -1,0 +1,618 @@
+{
+  "name": "Bioforce scenario vwebhook",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-3-5-haiku-20241022",
+          "mode": "list",
+          "cachedResultName": "Claude 3.5 Haiku"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        1720,
+        -320
+      ],
+      "id": "da7ca769-fc5f-4489-9a37-ab79bbb9cc1c",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "tXTPSdNdaiq6f5e9",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\n{{$json.body.message}}\n\n",
+        "options": {
+          "systemMessage": "\n**1. Rôle :**  \nTu es \"Bioforce agent, créateur de scénario\", expert en création de scénarios pédagogiques immersifs et structurés.\n\n**2. Tâche :**  \nTu vas accompagner le formateur dans l'élaboration complète d'un scénario pédagogique adapté à ses besoins. \n\n**3. Contexte :**  \nTu disposes d'une base de données contenant des documents essentiels : « référentiel compétences », « scénario pédagogique », « fiche pédagogique ». Tu t'appuieras sur ces ressources pour structurer efficacement ton travail.\n\n**4. Objectif :**  \nCo-créer avec le formateur un scénario pédagogique clair, structuré et pertinent qui respecte fidèlement les modèles existants dans la base de données Bioforce.\n\n**5. Étapes :**  \n- Identifier précisément avec le formateur les compétences ciblées (issues du « référentiel compétences »).\n- Élaborer une fiche pédagogique présentant clairement les grandes lignes du scénario.\n- Générer le scénario pédagogique détaillé après validation des points précédents.\n- Développer un contexte narratif immersif et réaliste pour le scénario pédagogique.\n\n**6. Format :**  \nLe résultat final doit respecter strictement la structure des scénarios pédagogiques référencés dans la base de données Bioforce, incluant clairement :\n- Référentiel de compétences ciblées\n- Fiche pédagogique synthétique\n- Scénario pédagogique détaillé\n- Contexte narratif précis\n\n**7. Contrainte :**  \nAssure-toi que chaque élément généré correspond exactement à la structure et aux attentes des documents existants dans la base de données, tout en intégrant étroitement les demandes spécifiques fournies par le formateur.\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        1880,
+        -540
+      ],
+      "id": "869be851-55ab-4722-9ba6-2e0e7b599ff3",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "$json.body.message",
+        "contextWindowLength": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1860,
+        -320
+      ],
+      "id": "ee8c9944-40d7-4ece-b8db-6ef26e4b747a",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        180,
+        -400
+      ],
+      "id": "c8d96f47-8753-4660-bac8-816f799db789",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "scénario",
+        "limit": 10,
+        "filter": {
+          "driveId": {
+            "mode": "list",
+            "value": "My Drive"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        400,
+        -400
+      ],
+      "id": "a42a79f0-1d8b-45e1-8af4-22632f53cdd7",
+      "name": "Google Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "hVFKQKnUs5563j3y",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        620,
+        -400
+      ],
+      "id": "761baa48-e7a7-4381-be14-dbae628772e3",
+      "name": "Google Drive1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "hVFKQKnUs5563j3y",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "bioforcedoc",
+          "mode": "list",
+          "cachedResultName": "bioforcedoc"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [
+        840,
+        -400
+      ],
+      "id": "eea1ef1e-db47-42fd-88be-f032b5c8e4a5",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "pJOeJmirWoHiMEib",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        760,
+        -180
+      ],
+      "id": "033ce707-42f8-435c-99e5-71fbc078eb0d",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "PLmtj1ia34XswvQp",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        980,
+        -180
+      ],
+      "id": "c4b01a4b-72cf-43dd-a097-04f18d43da3e",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1080,
+        40
+      ],
+      "id": "9333efd1-960e-467e-8b0f-d6ef5c293bba",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "content": "RAG Pinecone\n",
+        "height": 840,
+        "width": 1280
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        40,
+        -600
+      ],
+      "id": "2c602714-4d63-45cf-a515-c169c6d1c267",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "name": "Data",
+        "description": "Call this tool to access the database to answer all of the  user's questions"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        1980,
+        -320
+      ],
+      "id": "fee5b34a-cc22-4a1a-96ff-12de163802e3",
+      "name": "Answer questions with a vector store"
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "bioforcedoc",
+          "mode": "list",
+          "cachedResultName": "bioforcedoc"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [
+        1740,
+        -60
+      ],
+      "id": "1c0dccdc-a393-43b2-b8a2-a537f66da9c3",
+      "name": "Pinecone Vector Store1",
+      "credentials": {
+        "pineconeApi": {
+          "id": "pJOeJmirWoHiMEib",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-3-5-haiku-20241022",
+          "mode": "list",
+          "cachedResultName": "Claude 3.5 Haiku"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        2120,
+        -100
+      ],
+      "id": "c29b06a3-0c47-4939-ba80-c7e16478e03b",
+      "name": "Anthropic Chat Model1",
+      "credentials": {
+        "anthropicApi": {
+          "id": "tXTPSdNdaiq6f5e9",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1740,
+        100
+      ],
+      "id": "cc84b75d-ee2e-48f0-9a34-d34c4526a392",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "PLmtj1ia34XswvQp",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "AI AGENT",
+        "height": 840,
+        "width": 1000,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1580,
+        -600
+      ],
+      "id": "2588a0ff-61ce-409f-8f87-f711ea5a4548",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "=POST",
+        "path": "bioforce-agent",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        1620,
+        -540
+      ],
+      "id": "3fb3c8c9-c9b1-4c2a-b972-edef807f447f",
+      "name": "Webhook",
+      "webhookId": "3f5c9d69-2e1f-4842-8065-49cf3a83e84d"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2300,
+        -540
+      ],
+      "id": "ea42e504-8fbc-4d9c-90c2-7dfc13ef48e4",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "body.message",
+        "options": {
+          "encoding": "utf8",
+          "fileName": "=Scénario pédagogique - {{ $now.format(\"YYYY-MM-DD HH:mm\") }}"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        2120,
+        -980
+      ],
+      "id": "eaf5bf01-c4b3-41fc-bb2a-1fd5ec9e3b01",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "name": "=Scénario pédagogique - {{ $now.format(\"YYYY-MM-DD HH:mm\") }}.doc",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "185h0uB_zzNkuTlVjtJjeZrd9lSNAVoW0",
+          "mode": "list",
+          "cachedResultName": "Bioforce",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/185h0uB_zzNkuTlVjtJjeZrd9lSNAVoW0"
+        },
+        "options": {
+          "simplifyOutput": true
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2360,
+        -980
+      ],
+      "id": "60ef7825-f363-46ae-948a-dfa8ac2a2474",
+      "name": "Google Drive2",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "hVFKQKnUs5563j3y",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "download-conversation",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        1640,
+        -980
+      ],
+      "id": "b1194b74-5e6c-4469-9494-7f4ee31cc2ae",
+      "name": "Download",
+      "webhookId": "952e482c-68a9-49c5-8fd0-3d6e97e0310a"
+    },
+    {
+      "parameters": {
+        "content": "Download-conversation",
+        "height": 300,
+        "width": 1020,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        -1080
+      ],
+      "id": "f06060b9-b81d-4205-b036-4a1c14a3c73e",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Google Drive1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive1": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store1": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Google Drive2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7d3b4299-2a3d-4473-974a-2f40ca8ebf68",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "63d270d2ab85884b2e67d652bc46b62a27469bf26bd9d5d0ca0ee22ccc5358a8"
+  },
+  "id": "cuwrH377GdPdUpnR",
+  "tags": []
+}
